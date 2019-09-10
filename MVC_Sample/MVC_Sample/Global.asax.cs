@@ -13,6 +13,7 @@ namespace MVC_Sample
         protected void Application_Start()
         {
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
             ControllerBuilder.Current.SetControllerFactory(new DefaultControllerFactory());
            
         }

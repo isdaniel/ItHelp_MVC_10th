@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Web;
+﻿using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
@@ -27,8 +26,11 @@ namespace MVC_Sample
             //注入typeof(MvcApplication).Assembly 中所有繼承IController物件.
             builder.RegisterControllers(typeof(MvcApplication).Assembly);
             builder.RegisterType<MemberService>().As<IMemberService>();
+            builder.RegisterType<CustomerActionInvoker>().As<IActionInvoker>();
+
             //替換成自己的DependencyResolver
             DependencyResolver.SetResolver(new CustomerDependencyResolver(builder.Build()));
         }
     }
 }
+

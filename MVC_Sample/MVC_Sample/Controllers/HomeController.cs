@@ -21,7 +21,7 @@ namespace MVC_Sample.Controllers
             return View();
         }
 
-        public ActionResult About()
+        public ActionResult About(string name)
         {
             ViewBag.Message = $"Member Balance { _service.GetMemberBalance(123)}";
 

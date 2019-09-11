@@ -8,20 +8,18 @@ namespace MVC_Sample
 {
     public class CustomerActionInvoker : IActionInvoker
     {
-
-        public CustomerActionInvoker()
-        {
-
-        }
-
         public bool InvokeAction(ControllerContext controllerContext, string actionName)
         {
-            MethodInfo method = controllerContext.Controller.GetType().GetMethods().First(m => string.Compare(actionName, m.Name, StringComparison.OrdinalIgnoreCase) == 0);
-            List<object> parameters = new List<object>();
-            foreach (ParameterInfo parameter in method.GetParameters())
-            {
-                parameters.Add(BindModel(controllerContext, parameter.Name, parameter.ParameterType));
-            }
+            //取得執行Action方法
+            MethodInfo method = controllerContext.Controller
+                .GetType()
+                .GetMethods()
+                .First(m => string.Compare(actionName, m.Name, StringComparison.OrdinalIgnoreCase) == 0);
+
+            //取得Action使用的參數,並利用反射將值填充
+            var parameters = method.GetParameters().Select(parameter =>
+                BindModel(controllerContext, parameter.Name, parameter.ParameterType));
+
             ActionResult actionResult = method.Invoke(controllerContext.Controller, parameters.ToArray()) as ActionResult;
 
             actionResult.ExecuteResult(controllerContext);
@@ -38,7 +36,7 @@ namespace MVC_Sample
                 if (GetValueTypeInstance(controllerContext, modelName, modelType, out instance))
                 {
                     return instance;
-                };
+                }
                 return Activator.CreateInstance(modelType);
             }
 
@@ -86,6 +84,7 @@ namespace MVC_Sample
             }
 
             value = null;
+
             return false;
         }
     }

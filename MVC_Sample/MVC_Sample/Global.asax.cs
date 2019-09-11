@@ -26,6 +26,7 @@ namespace MVC_Sample
             //注入typeof(MvcApplication).Assembly 中所有繼承IController物件.
             builder.RegisterControllers(typeof(MvcApplication).Assembly);
             builder.RegisterType<MemberService>().As<IMemberService>();
+            //因為IActionInvoker會先從解析器找尋實作IActionInvoker類別,如果沒有使用DefaultActionInvoker
             builder.RegisterType<CustomerActionInvoker>().As<IActionInvoker>();
 
             //替換成自己的DependencyResolver

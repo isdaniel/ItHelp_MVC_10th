@@ -7,6 +7,11 @@ using MVC_Sample.Services;
 
 namespace MVC_Sample.Controllers
 {
+    public class Person
+    {
+        public string Name{ get; set; }
+    }
+
     public class HomeController : Controller
     {
         private readonly IMemberService _service;
@@ -21,9 +26,9 @@ namespace MVC_Sample.Controllers
             return View();
         }
 
-        public ActionResult About(string name)
+        public ActionResult About(Person p)
         {
-            ViewBag.Message = $"Member Balance { _service.GetMemberBalance(123)}";
+            ViewBag.Message = $"Member {p?.Name??string.Empty} Balance { _service.GetMemberBalance(123)}";
 
             return View();
         }

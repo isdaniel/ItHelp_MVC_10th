@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Web.Mvc;
+using MVC_Sample.ValueProvider;
+using FormValueProvider = MVC_Sample.ValueProvider.FormValueProvider;
+using QueryStringValueProvider = MVC_Sample.ValueProvider.QueryStringValueProvider;
 
 namespace MVC_Sample
 {
     public class CustomerActionInvoker : IActionInvoker
     {
+
         public bool InvokeAction(ControllerContext controllerContext, string actionName)
         {
             //取得執行Action方法
@@ -48,43 +52,41 @@ namespace MVC_Sample
             object modelInstance = Activator.CreateInstance(modelType);
             foreach (PropertyInfo property in modelType.GetProperties())
             {
-                //只針對simple model binding做動作.
-                if (!property.CanWrite || (!property.PropertyType.IsValueType && property.PropertyType != typeof(string)))
+                //針對基本型別或string型別給值
+                if (!property.CanWrite || IsSimpleType(property))
                 {
-                    continue;
-                }
-
-                object propertyValue;
-                if (GetValueTypeInstance(controllerContext, property.Name, property.PropertyType, out propertyValue))
-                {
-                    property.SetValue(modelInstance, propertyValue);
+                    object propertyValue;
+                    if (GetValueTypeInstance(controllerContext, property.Name, property.PropertyType, out propertyValue))
+                    {
+                        property.SetValue(modelInstance, propertyValue);
+                    }
                 }
             }
 
             return modelInstance;
         }
 
+        private static bool IsSimpleType(PropertyInfo property)
+        {
+            return property.PropertyType == typeof(string) ||property.PropertyType.IsValueType;
+        }
+
         private bool GetValueTypeInstance(ControllerContext controllerContext, string modelName, Type modelType, out object value)
         {
-            var form = controllerContext.RequestContext.HttpContext.Request.Form;
-            var queryString = controllerContext.RequestContext.HttpContext.Request.QueryString;
-
-            string key = form.AllKeys.FirstOrDefault(x => string.Compare(x, modelName, StringComparison.OrdinalIgnoreCase) == 0);
-            if (key != null)
+            List<ValueProviderBase> _valueProvider = new List<ValueProviderBase>()
             {
-                value = Convert.ChangeType(form[key], modelType);
-                return true;
-            }
+                new FormValueProvider(controllerContext),
+                new QueryStringValueProvider(controllerContext)
+            };
 
-            string queryKey = queryString.AllKeys.FirstOrDefault(x => string.Compare(x, modelName, StringComparison.OrdinalIgnoreCase) == 0);
-            if (queryKey != null)
+            foreach (var valueProvider in _valueProvider)
             {
-                value = Convert.ChangeType(queryString[queryKey], modelType);
-                return true;
+                value = valueProvider.GetValue(modelName, modelType);
+                if (value != null)
+                    return true;
             }
 
             value = null;
-
             return false;
         }
     }
